@@ -12,7 +12,7 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            justify-content: center; /* Modifica qui */
+            justify-content: flex-start; /* Modifica qui */
             align-items: center;
             font-family: 'Calibri', sans-serif;
         }
@@ -30,51 +30,12 @@
             border-radius: 5px;
             font-size: 1.2em;
             cursor: pointer;
+            margin-top: auto; /* Modifica qui */
         }
     </style>
 </head>
 <body>
     <div id="title">VUOI VEDERE CONTENUTI IN REALTÀ AUMENTATA?</div>
     <button id="startButton">VIA!</button>
-
-    <script>
-        async function activateXR() {
-            const session = await navigator.xr.requestSession("immersive-ar");
-
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            const renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            document.body.appendChild(renderer.domElement);
-
-            const geometry = new THREE.SphereGeometry(0.1, 32, 32);
-            const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-            const sphere = new THREE.Mesh(geometry, material);
-            scene.add(sphere);
-
-            const referenceSpace = await session.requestReferenceSpace('local');
-            const sessionRenderer = new THREE.XRWebGLLayer(session, renderer);
-            session.updateRenderState({ baseLayer: sessionRenderer });
-
-            const animate = function () {
-                session.requestAnimationFrame(animate);
-
-                const pose = frame.getViewerPose(referenceSpace);
-                if (pose) {
-                    const view = pose.views[0];
-                    const viewport = sessionRenderer.getViewport(view);
-                    renderer.setSize(viewport.width, viewport.height);
-                    camera.matrix.fromArray(view.transform.matrix);
-                    camera.projectionMatrix.fromArray(view.projectionMatrix);
-                    camera.updateMatrixWorld(true);
-                    renderer.render(scene, camera);
-                }
-            };
-
-            session.requestAnimationFrame(animate);
-        }
-
-        document.getElementById("startButton").addEventListener("click", activateXR);
-    </script>
 </body>
 </html>
