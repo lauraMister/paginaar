@@ -37,5 +37,14 @@
 <body>
     <div id="title">VUOI VEDERE CONTENUTI IN REALTÀ AUMENTATA?</div>
     <button id="startButton">VIA!</button>
+
+    <script>
+        async function activateXR() {
+            const session = await navigator.xr.requestSession("immersive-ar");
+            session.end();
+        }
+
+        document.getElementById("startButton").addEventListener("click", activateXR);
+    </script>
 </body>
 </html>
