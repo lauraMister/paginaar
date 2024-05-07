@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page</title>
+    <title>AR Experience</title>
     <style>
         body {
             margin: 0;
@@ -12,15 +12,9 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start; /* Modifica qui */
+            justify-content: center;
             align-items: center;
-            font-family: 'Calibri', sans-serif;
-        }
-        #title {
-            color: purple;
-            font-size: 1.5em;
-            text-align: center;
-            margin-top: 20px;
+            font-family: Arial, sans-serif;
         }
         #startButton {
             background-color: purple;
@@ -30,12 +24,69 @@
             border-radius: 5px;
             font-size: 1.2em;
             cursor: pointer;
-            margin-top: auto; /* Modifica qui */
         }
     </style>
 </head>
 <body>
-    <div id="title">VUOI VEDERE CONTENUTI IN REALTÀ AUMENTATA?</div>
     <button id="startButton">VIA!</button>
+
+    <script src="https://unpkg.com/three@0.126.0/build/three.js"></script>
+    <script>
+        async function activateAR() {
+            const button = document.getElementById('startButton');
+            button.style.display = 'none'; // Nascondi il pulsante quando l'esperienza di AR viene attivata
+
+            // Inizializza una scena Three.js
+            const scene = new THREE.Scene();
+
+            // Crea una pallina rossa
+            const geometry = new THREE.SphereGeometry(0.1, 32, 32);
+            const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            const sphere = new THREE.Mesh(geometry, material);
+            scene.add(sphere);
+
+            // Inizializza la fotocamera
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+            // Inizializza il renderer
+            const renderer = new THREE.WebGLRenderer({ alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Inizializza il WebXR
+            const session = await navigator.xr.requestSession('immersive-ar', {
+                requiredFeatures: ['hit-test']
+            });
+
+            // Inizializza la visualizzazione XR
+            const xrReferenceSpace = await session.requestReferenceSpace('viewer');
+            const xrViewerPose = await session.requestAnimationFrame(onXRFrame);
+
+            // Funzione di rendering
+            function onXRFrame(time, frame) {
+                const session = frame.session;
+                const xrViewerPose = frame.getViewerPose(xrReferenceSpace);
+
+                // Aggiorna la posizione della fotocamera
+                if (xrViewerPose) {
+                    const xrViewerPosition = xrViewerPose.transform.position;
+                    camera.position.set(xrViewerPosition.x, xrViewerPosition.y, xrViewerPosition.z);
+                    camera.updateMatrixWorld();
+                }
+
+                // Rendi visibile la scena attraverso la fotocamera
+                renderer.render(scene, camera);
+
+                // Richiedi il prossimo frame di rendering
+                session.requestAnimationFrame(onXRFrame);
+            }
+
+            // Avvia la sessione XR
+            session.updateRenderState({ baseLayer: new XRWebGLLayer(session, renderer) });
+            session.requestAnimationFrame(onXRFrame);
+        }
+
+        document.getElementById('startButton').addEventListener('click', activateAR);
+    </script>
 </body>
 </html>
